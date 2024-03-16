@@ -33,71 +33,6 @@ public:
     }
   }
 
-  // helper method
-  void strToArr(string str, char *arr) {
-    for (int i = 0; i < str.length(); i++) {
-      arr[i] = str[i];
-    }
-  }
-
-  // helper method
-  void write_as_bytes(ofstream &file, int value, int byte_size) {
-    // ofstream is a class with the built in function "write"
-    // have to send it a constant char pointer
-    // we take the reference of the value that we sent, turn that value into a
-    // constant char pointer by casting it
-    file.write(reinterpret_cast<const char *>(&value), byte_size);
-  }
-
-  //helper to process number from bytes
-  int read_int_from_bytes(char buffer[]) {
-    int value;
-    value = (static_cast<unsigned char>(buffer[0]) << 24) | 
-    (static_cast<unsigned char>(buffer[1]) << 16) |
-    (static_cast<unsigned char>(buffer[2]) << 8) |
-    static_cast<unsigned char>(buffer[3]);
-    return value;
-  }
-
-/*
-  string writeHeader(int sr, int af, int nc) {
-    strToArr("RIFF", chunk_id);
-    strToArr("WAVE", format);
-    strToArr("fmt ", subchunk1_id);
-    // subchunk1_size = 16;
-    // audio_format = af;
-    // num_channels = nc;
-    // sample_rate = sr;
-    // byte_rate = sample_rate * num_channels * (subchunk1_size / 8);
-    // block_align = num_channels * (subchunk1_size / 8);
-    // bits_per_sample = 16;
-    // strToArr("data", subchunk2_id);
-    // subchunk2_size = 0;
-    // header_size = 44;
-    // chunk_size = 36+subchunk2_size;
-
-    if (ofile.is_open()) {
-      ofile << chunk_id;
-      ofile << chunk_size;
-      ofile << format;
-
-      // subchunk
-      ofile << subchunk1_id;
-      write_as_bytes(ofile, subchunk1_size, 4);
-      write_as_bytes(ofile, audio_format, 2);
-      write_as_bytes(ofile, num_channels, 2);
-      write_as_bytes(ofile, sample_rate, 4);
-      write_as_bytes(ofile, byte_rate, 4);
-      write_as_bytes(ofile, block_align, 2);
-      write_as_bytes(ofile, bits_per_sample, 2);
-
-      ofile << subchunk2_id;
-      ofile << subchunk2_size;
-    }
-
-    return "success";
-  }
-*/
   string copyData(string name) {
     ifile.open(name, ios::binary);
 
@@ -163,12 +98,6 @@ public:
       ofile.write(reinterpret_cast<char*>(&sample), buffsize);
 
     }
-    /*
-    while (std::string(buffer, 4) != "LIST") {
-      ifile.read(buffer, 4);
-      ofile.write(buffer, 4);
-    }
-    */
 
 
     return "success";

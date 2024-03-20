@@ -1,4 +1,4 @@
-# wave-xperiments
+# Wav Audio Processing
 
 # Olivia Weseley
 # 2024

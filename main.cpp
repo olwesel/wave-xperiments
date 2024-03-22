@@ -48,6 +48,7 @@ public:
 
   string copyHeader(string name) // method to copy the ifile header to ofile
   {
+    cout << "hi";
     ifile.open(name, ios::binary); 
 
     if (!ifile.is_open()) // check that ifile is open
@@ -119,15 +120,16 @@ public:
     int buffsize = bits_per_sample/8; // bytes per sample
     char sample[buffsize];
     int sampleVal; 
-  
+    
     // delay and decay are user-alterable values
     double delay = 80; // in ms
-    double decay = 0.85; // amount of time in seconds for reverb to die
+    double decay = 0.2; // amount of time in seconds for reverb to die
     
     int delay_samples = sample_rate * 0.001 * delay; 
     int decay_samples = sample_rate * decay;
     int decayBuffer[decay_samples];
     int delayBuffer[delay_samples];
+    int data[subchunk2_size / buffsize + delay_samples];
 
     for (int i = 0; i < subchunk2_size / buffsize; i++) 
     {
@@ -164,24 +166,92 @@ public:
         return "buffsize error"; 
       } // if do not recognize buffsize
           
-      // shift decay buffer vals over by one
-      for (int k = 0; k < delay_samples; k++) 
-      {
-        delayBuffer[k] = delayBuffer[k + 1];
-      } // k loop
+      // add value to data array
+      sampleVal *= 0.5;
+      data[i] = sampleVal;
+    } // i loop
 
-      sampleVal += delayBuffer[0] * decay;
-      delayBuffer[delay_samples] = sampleVal;
-      ofile.write(reinterpret_cast<char*>(&sampleVal), buffsize);
+    // modify samples
+    /*
+    for (int i = 0; i < subchunk2_size / buffsize + delay_samples; i++) {
+      data[i + delay_samples] += data[i]*0.5;
+    } // i loop
+    */
+
+    // write new samples
+    for (int i = 0; i < subchunk2_size / buffsize; i++) {
+      ofile.write(reinterpret_cast<char*>(&data[i]), buffsize);
+    }
+
+    return "success";
+  } // reverb method
+
+   string changePitch() // pitch method
+  { 
+    int buffsize = bits_per_sample/8; // bytes per sample
+    char sample[buffsize];
+    int sampleVal; 
+  
+    // delay and decay are user-alterable values
+    double delay = 80; // in ms
+    double decay = 0.85; // amount of time in seconds for reverb to die
+    
+    int delay_samples = sample_rate * 0.001 * delay; 
+    int decay_samples = sample_rate * decay;
+    int decayBuffer[decay_samples];
+    int delayBuffer[delay_samples];
+
+    for (int i = 0; i < subchunk2_size / buffsize; i++) 
+    {
+      sampleVal = 0;
+      // read in a sample 1 byte at a time
+      for (int j = 0; j < buffsize; j++) 
+      {
+        ifile.read(reinterpret_cast<char*>(&sample[j]), 1);
+      } // j loop
+
+      // calculate the sampleVal by performing bit shifts (hexidecimal)
+      if (buffsize == 4) // 32 bit
+      {
+        sampleVal = (sample[3] << 24) | (sample[2] << 16) | (sample[1] << 8) | sample[0];
+      } // if buffsize is 4
+
+      else if (buffsize == 3) // 24 bit 
+      {
+        sampleVal = (sample[2] << 16) | (sample[1] << 8) | sample[0];
+      } // if buffsize is 3
+      
+      else if (buffsize == 2) // 16 bit
+      {
+        sampleVal = (sample[1] << 8) | sample[0];
+        cout << "yes";
+      } // if buffsize is 2
+
+      else if (buffsize == 1) // 8 bit
+      {
+        sampleVal = sample[0];
+      } // if buffsize is 1 
+
+      else // crazy bit?!
+      {
+        cout << "error";
+        return "buffsize error"; 
+      } // if do not recognize buffsize
+          
+      if (i%2000 < 1000) {
+        ofile.write(reinterpret_cast<char*>(&sampleVal), buffsize);
+      }
+      
 
     } // i loop
     return "success";
-  } // reverb method
+  } // pitch method
 }; // Wav class
 
 // MAIN METHOD: currently creates a new test file to copy the tiger.wav header
 // to and perform the reverb effect on
 int main() {
+  cout << "hi";
   Wav myWav("test");
   myWav.copyHeader("tiger.wav");
   myWav.reverb();
